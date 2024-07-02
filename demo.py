@@ -22,25 +22,36 @@ from .sampler.chat_completion_sampler import (
 def main():
     debug = True
     samplers = {
+        # vllm models:
+        "llama3-8b_vllm_assistant": ChatCompletionSampler(
+            model="meta-llama/Meta-Llama-3-8B-Instruct",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            base_url="http://localhost:8000/v1",
+        ),
+        "llama3-8b_vllm_chatgpt": ChatCompletionSampler(
+            model="meta-llama/Meta-Llama-3-8B-Instruct",
+            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+            base_url="http://localhost:8000/v1",
+        ),
         # chatgpt models:
-        "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-        ),
-        "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        ),
-        "gpt-4o_assistant": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
-        "gpt-4o_chatgpt": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-            max_tokens=2048,
-        ),
+        # "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        # ),
+        # "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        # ),
+        # "gpt-4o_assistant": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
+        # "gpt-4o_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        #     max_tokens=2048,
+        # ),
         # claude models:
         # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
         #     model="claude-3-opus-20240229", system_message=None,
@@ -69,8 +80,11 @@ def main():
             case _:
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
+    # evals = {
+    #     eval_name: get_evals(eval_name) for eval_name in ["mmlu", "math", "gpqa", "mgsm", "drop"]
+    # }
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["mmlu", "math", "gpqa", "mgsm", "drop"]
+        eval_name: get_evals(eval_name) for eval_name in ["math"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if debug else ""

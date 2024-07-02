@@ -25,9 +25,10 @@ class ChatCompletionSampler(SamplerBase):
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
+        base_url: str | None = None,
     ):
         self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
+        self.client = OpenAI(base_url=base_url)
         # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
         self.model = model
         self.system_message = system_message
