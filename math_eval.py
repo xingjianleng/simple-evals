@@ -4,10 +4,11 @@ Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Ta
 https://arxiv.org/abs/2103.03874
 """
 
+import io
 import random
 import re
+import urllib
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -25,9 +26,11 @@ Remember to put your answer on its own line after "Answer:", and you do not need
 
 class MathEval(Eval):
     def __init__(self, equality_checker: SamplerBase, num_examples: int | None = None):
-        df = pandas.read_csv(
-            bf.BlobFile("https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv")
-        )
+        url = "https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv"
+        with urllib.request.urlopen(url) as f:
+            df = pandas.read_csv(
+                io.BytesIO(f.read())
+            )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)

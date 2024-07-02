@@ -7,8 +7,7 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 
 import re
 from typing import Optional
-
-import blobfile as bf
+import urllib
 
 from . import common
 from .mmlu_eval import HTML_JINJA
@@ -109,9 +108,9 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with bf.BlobFile(fpath, "r") as f:
+    with urllib.request.urlopen(fpath) as f:
         for line in f:
-            inputs, targets = line.strip().split("\t")
+            inputs, targets = line.decode("utf-8").strip().split("\t")
             if "." in targets:
                 raise ValueError(f"targets {targets} contains a decimal point.")
             # targets = int(targets.replace(",", ""))

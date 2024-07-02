@@ -4,10 +4,11 @@ Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song,
 https://arxiv.org/abs/2009.03300
 """
 
+import io
 import random
 import re
+import urllib
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -77,9 +78,11 @@ subject2category = {
 
 class MMLUEval(Eval):
     def __init__(self, num_examples: int | None = None):
-        df = pandas.read_csv(
-            bf.BlobFile("https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv")
-        )
+        url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
+        with urllib.request.urlopen(url) as f:
+            df = pandas.read_csv(
+                io.BytesIO(f.read())
+            )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)

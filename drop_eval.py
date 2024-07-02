@@ -10,8 +10,9 @@ import random
 import re
 import string
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+import urllib
+import urllib.request
 
-import blobfile as bf
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -245,14 +246,16 @@ class DropEval(Eval):
         self.test_jsonl = (
             "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
         )
-        with gzip.GzipFile(fileobj=bf.BlobFile(self.train_jsonl, "rb"), mode="rb") as f:
-            self.train_samples = list(map(json.loads, f.readlines()))
-        with gzip.GzipFile(fileobj=bf.BlobFile(self.test_jsonl, "rb"), mode="rb") as f:
-            self.test_samples = list(map(json.loads, f.readlines()))
-            if self._num_examples:
-                self.test_samples = random.Random(self.seed).sample(
-                    self.test_samples, self._num_examples
-                )
+        with urllib.request.urlopen(self.train_jsonl) as url_f:
+            with gzip.GzipFile(fileobj=url_f) as f:
+                self.train_samples = list(map(json.loads, f.readlines()))
+        with urllib.request.urlopen(self.test_jsonl) as url_f:
+            with gzip.GzipFile(fileobj=url_f) as f:
+                self.test_samples = list(map(json.loads, f.readlines()))
+                if self._num_examples:
+                    self.test_samples = random.Random(self.seed).sample(
+                        self.test_samples, self._num_examples
+                    )
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         rng = random.Random(self.seed)
