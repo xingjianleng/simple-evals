@@ -25,11 +25,18 @@ Remember to put your answer on its own line after "Answer:", and you do not need
 
 
 class MathEval(Eval):
-    def __init__(self, equality_checker: SamplerBase, num_examples: int | None = None):
-        url = "https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv"
-        with urllib.request.urlopen(url) as f:
+    def __init__(self, equality_checker: SamplerBase, file_path: str | None = None, num_examples: int | None = None):
+        # Set the default file path to the math_test.csv file
+        if file_path is None:
+            file_path = "https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv"
+        if "http" in file_path:
+            with urllib.request.urlopen(file_path) as f:
+                df = pandas.read_csv(
+                    io.BytesIO(f.read())
+                )
+        else:
             df = pandas.read_csv(
-                io.BytesIO(f.read())
+                file_path
             )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
@@ -37,7 +44,7 @@ class MathEval(Eval):
         self.examples = examples
         self.equality_checker = equality_checker
 
-    def __call__(self, sampler: SamplerBase) -> EvalResult:
+    def __call__(self, sampler: SamplerBase, num_threads: int) -> EvalResult:
         def fn(row: dict):
             prompt_messages = [
                 sampler._pack_message(content=QUERY_TEMPLATE.format(**row), role="user")
@@ -56,5 +63,5 @@ class MathEval(Eval):
             convo = prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(html=html, score=score, convo=convo)
 
-        results = common.map_with_progress(fn, self.examples)
+        results = common.map_with_progress(fn, self.examples, num_threads=num_threads)
         return common.aggregate_results(results)
