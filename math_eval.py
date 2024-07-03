@@ -5,11 +5,13 @@ https://arxiv.org/abs/2103.03874
 """
 
 import io
+import os
 import random
 import re
 import urllib
 
 import pandas
+import requests
 
 from . import common
 from .common import ANSWER_PATTERN, HTML_JINJA, check_equality
@@ -22,6 +24,18 @@ Solve the following math problem step by step. The last line of your response sh
 
 Remember to put your answer on its own line after "Answer:", and you do not need to use a \\boxed command.
 """.strip()
+
+
+def check_connectivity(url):
+    try:
+        response = requests.get(url)
+        # Check if the server sent any response
+        if response.ok or not response.ok:
+            return True
+    except requests.exceptions.ConnectionError:
+        return False
+    except requests.exceptions.RequestException as e:
+        return False
 
 
 class MathEval(Eval):
@@ -44,12 +58,31 @@ class MathEval(Eval):
         self.examples = examples
         self.equality_checker = equality_checker
 
-    def __call__(self, sampler: SamplerBase, num_threads: int) -> EvalResult:
+    def __call__(self, sampler: SamplerBase, num_threads: int, save_dir: str | None = None) -> EvalResult:
+        # Create save_dir if it does not exist
+        os.makedirs(save_dir, exist_ok=True)
+
         def fn(row: dict):
             prompt_messages = [
                 sampler._pack_message(content=QUERY_TEMPLATE.format(**row), role="user")
             ]
-            response_text = sampler(prompt_messages)
+
+            # Write the response to a file if save_dir is provided
+            if save_dir:
+                response_path = os.path.join(save_dir, f"response_{row['Unnamed: 0']}.txt")
+                if os.path.exists(response_path):
+                    with open(response_path, "r") as f:
+                        response_text = f.read()
+                else:
+                    response_text = sampler(prompt_messages)
+                    with open(response_path, "w") as f:
+                        f.write(response_text)
+            else:
+                response_text = sampler(prompt_messages)
+
+            if not check_connectivity(str(self.equality_checker.client.base_url)):
+                return
+
             match = re.search(ANSWER_PATTERN, response_text)
             extracted_answer = match.group(1) if match else None
             score = float(check_equality(self.equality_checker, row["Answer"], extracted_answer))
@@ -64,4 +97,6 @@ class MathEval(Eval):
             return SingleEvalResult(html=html, score=score, convo=convo)
 
         results = common.map_with_progress(fn, self.examples, num_threads=num_threads)
+        if any(result is None for result in results):
+            return 
         return common.aggregate_results(results)

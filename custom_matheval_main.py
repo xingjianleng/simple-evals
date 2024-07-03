@@ -86,40 +86,33 @@ def main(args):
                          file_path=args.file_path,
                          num_examples=args.num_examples if args.num_examples > 0 else None)
 
-    result = evaluator(sampler, num_threads=args.num_threads)
+    # The output directory
+    output_path = os.path.join(
+        os.path.dirname(__file__),
+        "output",
+        f"{os.path.basename(args.file_path).split('.')[0]}_{args.llm}")
+    os.makedirs(output_path, exist_ok=True)
+
+    result = evaluator(sampler, num_threads=args.num_threads, save_dir=output_path)
+    if result is None:
+        print("=== Cannot reach the Evaluator LLM, double check! ===")
+        return
+
     # ^^^ how to use a sampler
-    file_stem = f"{eval_name}_{sampler_name}"
-    report_filename = f"/tmp/{file_stem}.html"
+    report_filename = os.path.join(output_path, f"report_{args.checker_llm}.html")
     print(f"Writing report to {report_filename}")
     with open(report_filename, "w") as fh:
         fh.write(common.make_report(result))
     metrics = result.metrics | {"score": result.score}
     print(metrics)
-    result_filename = f"/tmp/{file_stem}.json"
+    result_filename = os.path.join(output_path, f"report_{args.checker_llm}.json")
 
     # Perform evaluation only if the file does not exist
-    if not os.path.exists(result_filename):
-        with open(result_filename, "w") as f:
-            f.write(json.dumps(metrics, indent=2))
-        print(f"Writing results to {result_filename}")
+    with open(result_filename, "w") as f:
+        f.write(json.dumps(metrics, indent=2))
+    print(f"Writing results to {result_filename}")
 
-    try:
-        result = json.load(open(result_filename, "r+"))
-        result = result.get("f1_score", result.get("score", None))
-        eval_name = file_stem[: file_stem.find("_")]
-        sampler_name = file_stem[file_stem.find("_") + 1 :]
-        metrics = [{"eval_name": eval_name, "sampler_name": sampler_name, "metric": result}]
-        metrics_df = pd.DataFrame(metrics).pivot(
-            index=["sampler_name"], columns="eval_name"
-        )
-    except Exception as e:
-        print(e, result_filename)
-        metrics = {}
-        metrics_df = pd.DataFrame(metrics)
-    
-    print("\nAll results: ")
-    print(metrics_df.to_markdown())
-    return metrics
+    print("=== Done! ===")
 
 
 if __name__ == "__main__":
