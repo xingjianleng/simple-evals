@@ -66,21 +66,49 @@ LLM_MODELS = {
         system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ),
     "gpt-4o_assistant": ChatCompletionSampler(
-        model="gpt-4o",
+        model="gpt-4o-2024-05-13",
         system_message=OPENAI_SYSTEM_MESSAGE_API,
         max_tokens=2048,
     ),
     "gpt-4o_chatgpt": ChatCompletionSampler(
-        model="gpt-4o",
+        model="gpt-4o-2024-05-13",
         system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         max_tokens=2048,
     ),
 }
 
 
+CHECKER_LLM_MODELS = {
+    # vllm models:
+    "llama3-8b": ChatCompletionSampler(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        base_url="http://localhost:8000/v1",
+    ),
+    "llama3-70b": ChatCompletionSampler(
+        model="meta-llama/Meta-Llama-3-70B-Instruct",
+        base_url="http://localhost:8000/v1",
+    ),
+    "qwen2-7b": ChatCompletionSampler(
+        model="Qwen/Qwen2-7B-Instruct",
+        base_url="http://localhost:8000/v1",
+    ),
+    "qwen2-72b": ChatCompletionSampler(
+        model="Qwen/Qwen2-72B-Instruct",
+        base_url="http://localhost:8000/v1",
+    ),
+    # chatgpt models:
+    "gpt-4-turbo-2024-04-09": ChatCompletionSampler(
+        model="gpt-4-turbo-2024-04-09",
+    ),
+    "gpt-4o-2024-05-13": ChatCompletionSampler(
+        model="gpt-4o-2024-05-13",
+    ),
+}
+
+
 def main(args):
     sampler = LLM_MODELS[args.llm]
-    equality_checker = ChatCompletionSampler(model=args.checker_llm)
+    equality_checker = CHECKER_LLM_MODELS[args.checker_llm]
 
     evaluator = MathEval(equality_checker=equality_checker,
                          file_path=args.file_path,
@@ -98,14 +126,16 @@ def main(args):
         print("=== Cannot reach the Evaluator LLM, double check! ===")
         return
 
-    # ^^^ how to use a sampler
-    report_filename = os.path.join(output_path, f"report_{args.checker_llm}.html")
+    # Add a timestamp with formatting to the output to avoid overwriting
+    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
+
+    report_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.html")
     print(f"Writing report to {report_filename}")
     with open(report_filename, "w") as fh:
         fh.write(common.make_report(result))
     metrics = result.metrics | {"score": result.score}
     print(metrics)
-    result_filename = os.path.join(output_path, f"report_{args.checker_llm}.json")
+    result_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.json")
 
     # Perform evaluation only if the file does not exist
     with open(result_filename, "w") as f:
