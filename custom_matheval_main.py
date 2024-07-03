@@ -133,14 +133,24 @@ def main(args):
     print(f"Writing report to {report_filename}")
     with open(report_filename, "w") as fh:
         fh.write(common.make_report(result))
+
     metrics = result.metrics | {"score": result.score}
     print(metrics)
     result_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.json")
-
-    # Perform evaluation only if the file does not exist
     with open(result_filename, "w") as f:
         f.write(json.dumps(metrics, indent=2))
     print(f"Writing results to {result_filename}")
+
+    df_out = []
+    for convo, score in zip(result.convos, result.scores):
+        df_out.append({
+            "user": convo[0]['content'],
+            "assistant": convo[1]['content'],
+            "score": score,
+        })
+    df_out = pd.DataFrame(df_out)
+    csv_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.csv")
+    df_out.to_csv(csv_filename, index=False)
 
     print("=== Done! ===")
 

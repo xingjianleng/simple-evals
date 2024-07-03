@@ -25,6 +25,7 @@ class EvalResult:
     metrics: dict[str, float] | None  # other metrics
     htmls: list[str]  # strings of valid HTML
     convos: list[MessageList]  # sampled conversations
+    scores: list[float] | None = None  # list of scores for each sample (convo)
 
 
 @dataclass

@@ -148,7 +148,8 @@ def aggregate_results(
             key = name if stat == "mean" else f"{name}:{stat}"
             final_metrics[key] = _compute_stat(values, stat)
     return EvalResult(
-        score=final_metrics.pop("score", None), metrics=final_metrics, htmls=htmls, convos=convos
+        score=final_metrics.pop("score", None), metrics=final_metrics,
+        htmls=htmls, convos=convos, scores=name2values.get("score", None)
     )
 
 
