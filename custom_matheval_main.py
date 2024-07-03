@@ -115,13 +115,19 @@ def main(args):
                          num_examples=args.num_examples if args.num_examples > 0 else None)
 
     # The output directory
-    output_path = os.path.join(
-        os.path.dirname(__file__),
-        "output",
-        f"{os.path.basename(args.file_path).split('.')[0]}_{args.llm}")
-    os.makedirs(output_path, exist_ok=True)
+    if args.save_dir is None:
+        save_dir = os.path.join(
+            os.path.dirname(__file__),
+            "output",
+            f"{os.path.basename(args.file_path).split('.')[0]}_{args.llm}")
+        os.makedirs(save_dir, exist_ok=True)
+    else:
+        # In this case, we are directly evaluating the examples with pre-saved responses
+        save_dir = args.save_dir
+        # TODO: Consider the case where args.file_path is None, and save_dir is not None
 
-    result = evaluator(sampler, num_threads=args.num_threads, save_dir=output_path)
+    result = evaluator(sampler, num_threads=args.num_threads,
+                       generate_only=args.generate_only, save_dir=save_dir)
     if result is None:
         print("=== Cannot reach the Evaluator LLM, double check! ===")
         return
@@ -129,14 +135,14 @@ def main(args):
     # Add a timestamp with formatting to the output to avoid overwriting
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
 
-    report_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.html")
+    report_filename = os.path.join(save_dir, f"report_{args.checker_llm}_{timestamp}.html")
     print(f"Writing report to {report_filename}")
     with open(report_filename, "w") as fh:
         fh.write(common.make_report(result))
 
     metrics = result.metrics | {"score": result.score}
     print(metrics)
-    result_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.json")
+    result_filename = os.path.join(save_dir, f"report_{args.checker_llm}_{timestamp}.json")
     with open(result_filename, "w") as f:
         f.write(json.dumps(metrics, indent=2))
     print(f"Writing results to {result_filename}")
@@ -149,7 +155,7 @@ def main(args):
             "score": score,
         })
     df_out = pd.DataFrame(df_out)
-    csv_filename = os.path.join(output_path, f"report_{args.checker_llm}_{timestamp}.csv")
+    csv_filename = os.path.join(save_dir, f"report_{args.checker_llm}_{timestamp}.csv")
     df_out.to_csv(csv_filename, index=False)
 
     print("=== Done! ===")
@@ -168,6 +174,10 @@ if __name__ == "__main__":
                         help="Number of examples to evaluate")
     parser.add_argument("--num_threads", type=int, default=2,
                         help="Number of threads to use for evaluation")
+    parser.add_argument("--save_dir", type=str, default=None,
+                        help="The directory to save the responses")
+    parser.add_argument("--generate_only", action="store_true",
+                        help="Generate the examples only without evaluation")
     args = parser.parse_args()
 
     # Start evaluation

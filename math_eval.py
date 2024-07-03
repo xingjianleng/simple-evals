@@ -58,10 +58,8 @@ class MathEval(Eval):
         self.examples = examples
         self.equality_checker = equality_checker
 
-    def __call__(self, sampler: SamplerBase, num_threads: int, save_dir: str | None = None) -> EvalResult:
-        # Create save_dir if it does not exist
-        os.makedirs(save_dir, exist_ok=True)
-
+    def __call__(self, sampler: SamplerBase, num_threads: int,
+                 generate_only: bool = False, save_dir: str | None = None) -> EvalResult:
         def fn(row: dict):
             prompt_messages = [
                 sampler._pack_message(content=QUERY_TEMPLATE.format(**row), role="user")
@@ -80,7 +78,7 @@ class MathEval(Eval):
             else:
                 response_text = sampler(prompt_messages)
 
-            if not check_connectivity(str(self.equality_checker.client.base_url)):
+            if generate_only or not check_connectivity(str(self.equality_checker.client.base_url)):
                 return
 
             match = re.search(ANSWER_PATTERN, response_text)
