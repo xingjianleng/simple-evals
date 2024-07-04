@@ -10,6 +10,7 @@ from .math_eval import MathEval
 from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
+    MATH_SYSTEM_MESSAGE,
     ChatCompletionSampler,
 )
 
@@ -26,6 +27,11 @@ LLM_MODELS = {
         system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         base_url="http://localhost:8000/v1",
     ),
+    "llama3-8b_vllm_math": ChatCompletionSampler(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        system_message=MATH_SYSTEM_MESSAGE,
+        base_url="http://localhost:8000/v1",
+    ),
     "llama3-70b_vllm_assistant": ChatCompletionSampler(
         model="meta-llama/Meta-Llama-3-70B-Instruct",
         system_message=OPENAI_SYSTEM_MESSAGE_API,
@@ -34,6 +40,11 @@ LLM_MODELS = {
     "llama3-70b_vllm_chatgpt": ChatCompletionSampler(
         model="meta-llama/Meta-Llama-3-70B-Instruct",
         system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        base_url="http://localhost:8000/v1",
+    ),
+    "llama3-70b_vllm_math": ChatCompletionSampler(
+        model="meta-llama/Meta-Llama-3-70B-Instruct",
+        system_message=MATH_SYSTEM_MESSAGE,
         base_url="http://localhost:8000/v1",
     ),
     "qwen2-7b_vllm_assistant": ChatCompletionSampler(
@@ -46,6 +57,11 @@ LLM_MODELS = {
         system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         base_url="http://localhost:8000/v1",
     ),
+    "qwen2-7b_vllm_math": ChatCompletionSampler(
+        model="Qwen/Qwen2-7B-Instruct",
+        system_message=MATH_SYSTEM_MESSAGE,
+        base_url="http://localhost:8000/v1",
+    ),
     "qwen2-72b_vllm_assistant": ChatCompletionSampler(
         model="Qwen/Qwen2-72B-Instruct",
         system_message=OPENAI_SYSTEM_MESSAGE_API,
@@ -54,6 +70,11 @@ LLM_MODELS = {
     "qwen2-72b_vllm_chatgpt": ChatCompletionSampler(
         model="Qwen/Qwen2-72B-Instruct",
         system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        base_url="http://localhost:8000/v1",
+    ),
+    "qwen2-72b_vllm_math": ChatCompletionSampler(
+        model="Qwen/Qwen2-72B-Instruct",
+        system_message=MATH_SYSTEM_MESSAGE,
         base_url="http://localhost:8000/v1",
     ),
     # chatgpt models:

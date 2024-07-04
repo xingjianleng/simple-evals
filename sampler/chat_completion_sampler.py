@@ -12,6 +12,10 @@ OPENAI_SYSTEM_MESSAGE_CHATGPT = (
     "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture."
     + "\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"
 )
+MATH_SYSTEM_MESSAGE = ("You are a math expert in algebra, geometry, calculus, number theory,"
+    " and statistics. Provide clear, step-by-step solutions to the math problems presented,"
+    " explaining your reasoning and the relevant concepts and formulas used."
+)
 
 
 class ChatCompletionSampler(SamplerBase):
