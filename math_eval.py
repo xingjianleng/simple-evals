@@ -58,7 +58,7 @@ class MathEval(Eval):
         self.examples = examples
         self.equality_checker = equality_checker
 
-    def __call__(self, sampler: SamplerBase, num_threads: int,
+    def __call__(self, sampler: SamplerBase, num_threads: int = 50,
                  generate_only: bool = False, save_dir: str | None = None) -> EvalResult:
         def fn(row: dict):
             prompt_messages = [
@@ -83,6 +83,8 @@ class MathEval(Eval):
 
             match = re.search(ANSWER_PATTERN, response_text)
             extracted_answer = match.group(1) if match else None
+            print(f"Extracted Answer:\n{extracted_answer}")
+            print(f"Correct Answer:\n{row['Answer']}")
             score = float(check_equality(self.equality_checker, row["Answer"], extracted_answer))
             html = common.jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
